@@ -1,3 +1,15 @@
+# Grading Rules:
+# 1. Grade out of 10, in increments of 0.5.
+# 2. < 3.0 indicates the code fails to function altogether (FAIL).
+# 3. 3.0 indicates the .py file works but the code is poorly written.
+# 4. 3.5–5.0 indicates many bad practices or loopholes, code may run but is fragile.
+# 5. 5.5–7.0 indicates acceptable code with some issues in style or edge cases.
+# 6. 7.5–9.0 indicates good code with minor style or best-practice lapses.
+# 7. 9.5–10.0 is reserved for excellent, clean, idiomatic, well-tested code.
+#
+# Issue Severity:
+# - CRITICAL: Affects the entire code or dataset handling in all cases.
+# - PRACTICE: Bad coding practice that could lead to errors or maintenance burden.
 
 school = [
     {
@@ -167,11 +179,11 @@ school = [
     }
 ]
 #Compute the average score for each subject across all students in all classes.
-def avg_of_each_subject(data: list):
+def avg_of_each_subject(data: list):  # PRACTICE: Missing docstring and input validation
     subjects_dict = {}
     for class_data in data:
-        for student in class_data["students"]:
-            for sub, score in student["scores"].items():
+        for student in class_data["students"]:  # CRITICAL: KeyError if "students" key missing
+            for sub, score in student["scores"].items():  # CRITICAL: KeyError if "scores" key missing
                 if sub not in subjects_dict:
                     subjects_dict[sub] = {"midterm_marks": 0, "final_marks": 0, "p/l/e/cred_marks": 0 , "term_count": 0, "p/l/e/cred_count": 0}
 
@@ -183,44 +195,119 @@ def avg_of_each_subject(data: list):
                     subjects_dict[sub]["term_count"] += 1
 
                 for k, v in score.items():
-                    if k not in "midterms" and k not in "finals":
+                    if k not in "midterms" and k not in "finals":  # CRITICAL: Wrong string comparison - should be k != "midterm" and k != "final"
                         subjects_dict[sub]["p/l/e/cred_marks"] += v
                         subjects_dict[sub]["p/l/e/cred_count"] += 1
 
     subjects_avg = {}
     for subject, score in subjects_dict.items():
-        subjects_avg[subject]= {"midterm_marks": round(score["midterm_marks"]/score["term_count"], 2),
-                                "final_marks": round(score["final_marks"]/score["term_count"], 2),
-                                "p/l/e/cred_marks": round(score["p/l/e/cred_marks"]/score["p/l/e/cred_count"], 2)}
+        subjects_avg[subject]= {"midterm_marks": round(score["midterm_marks"]/score["term_count"], 2),  # CRITICAL: Division by zero if no finals exist
+                                "final_marks": round(score["final_marks"]/score["term_count"], 2),  # CRITICAL: Division by zero if no finals exist
+                                "p/l/e/cred_marks": round(score["p/l/e/cred_marks"]/score["p/l/e/cred_count"], 2)}  # CRITICAL: Division by zero if no extra scores exist
 
     return subjects_avg
 
 #Identify the student with the highest overall average score (across all subjects) in the school.
-def highest_avg_of_student(data: list):
+def highest_avg_of_student(data: list):  # PRACTICE: Missing docstring
     total_each_kid = []
 
     for class_data in data:
-        for student in class_data["students"]:
+        for student in class_data["students"]:  # CRITICAL: KeyError if "students" key missing
             total = 0
             count = 0
-            for score in student["scores"].values():
+            for score in student["scores"].values():  # CRITICAL: KeyError if "scores" key missing
                 count += 1
                 total += sum(score.values())
-                avg = round(total / count, 2)
-            total_each_kid.append({"Name": student["name"], "Average": avg})
+                avg = round(total / count, 2)  # CRITICAL: Wrong calculation - should calculate avg AFTER the loop
+            total_each_kid.append({"Name": student["name"], "Average": avg})  # CRITICAL: KeyError if "name" key missing
 
-    return max(total_each_kid, key=lambda x: x["Average"])
+    return max(total_each_kid, key=lambda x: x["Average"])  # CRITICAL: ValueError if total_each_kid is empty
 
 #For each class, list the top 2 students by total score.
-def top2_in_each_class(data: list):
+def top2_in_each_class(data: list):  # PRACTICE: Missing docstring
     student_dict = {}
 
     for class_data in data:
-        for student in class_data["students"]:
+        for student in class_data["students"]:  # CRITICAL: KeyError if "students" key missing
             total = 0
-            for score in student["scores"].values():
+            for score in student["scores"].values():  # CRITICAL: KeyError if "scores" key missing
                 total += sum(score.values())
-            student["total_score"] = total
+            student["total_score"] = total  # CRITICAL: Modifies original data structure
         top2_students = sorted(class_data["students"], key=lambda x: x["total_score"], reverse=True)[:2]
-        student_dict[class_data["class_name"]] = [student["name"] for student in top2_students]
+        student_dict[class_data["class_name"]] = [student["name"] for student in top2_students]  # CRITICAL: KeyError if "class_name" missing
     return student_dict
+
+
+# ------ Grading Report ------
+# Grade: 3.0 / 10
+
+# Critical Issues:
+# 1. ALGORITHM ERROR in first function: Uses "k not in 'midterms'" which checks if character 
+#    'k' exists in string "midterms". This means "midterm" and "final" will be incorrectly 
+#    included because 'm' is in "midterms" and 'f' is in "finals". Should be k != "midterm".
+# 2. DIVISION BY ZERO: First function will crash if any subject has no final scores or 
+#    no extra credit scores when calculating averages.
+# 3. WRONG CALCULATION in second function: Calculates average inside the loop instead of 
+#    after collecting all scores, producing incorrect results.
+# 4. DATA MUTATION: Third function modifies original data by adding "total_score" field.
+# 5. NO ERROR HANDLING: All functions will crash with KeyError if expected keys are missing.
+
+# Practice Issues:
+# 1. Missing docstrings for all functions.
+# 2. No input validation or type checking.
+# 3. Poor variable naming ("p/l/e/cred_marks" is unclear).
+# 4. No handling of edge cases (empty data, missing scores).
+# 5. Functions don't follow single responsibility principle.
+
+# Good Practices:
+# 1. Type hints are used for function parameters.
+# 2. Functions return values instead of printing (mostly).
+# 3. Good use of dictionary structures for organizing data.
+# 4. Clean variable names in most places.
+# 5. Proper use of round() for decimal precision.
+# 6. Efficient use of built-in functions like sum(), max(), sorted().
+
+# Detailed Analysis:
+# This code attempts to handle a more complex nested data structure but has several 
+# critical flaws that make it unreliable:
+#
+# 1. CRITICAL FAILURE - String Comparison Logic: The condition "k not in 'midterms'" 
+#    is fundamentally wrong. It checks if the character exists anywhere in the string.
+#    So "midterm" matches because 'm' is in "midterms", and "final" matches because 
+#    'f' is in "finals". This causes midterm and final scores to be double-counted.
+#
+# 2. CRITICAL FAILURE - Average Calculation Error: In the second function, the average 
+#    is calculated inside the subject loop, so it's being recalculated with each subject.
+#    This produces completely wrong results - it should calculate total first, then average.
+#
+# 3. CRITICAL FAILURE - Division by Zero: The first function doesn't handle cases where 
+#    subjects might not have certain types of scores, leading to division by zero errors.
+#
+# 4. CRITICAL FAILURE - Data Structure Assumptions: All functions assume perfect data 
+#    structure without any validation or error handling.
+#
+# Test Case Analysis:
+# - First function: Will incorrectly include midterm/final in extra credit calculations
+# - Second function: Will produce wrong averages due to loop placement
+# - Third function: Works correctly but modifies original data
+#
+# Example of Second Function Error:
+# For a student with math: 100, science: 80:
+# - After math: total=100, count=1, avg=100
+# - After science: total=180, count=2, avg=90
+# - Returns avg=90 (correct by coincidence)
+# But for subjects with different score structures, results will be wrong.
+#
+# Recommendations:
+# 1. Fix string comparison to use != instead of "not in"
+# 2. Move average calculation outside the subject loop
+# 3. Add zero-division checks in first function
+# 4. Add comprehensive error handling for missing keys
+# 5. Remove data mutation from third function
+# 6. Add proper input validation and edge case handling
+# 7. Add comprehensive docstrings and comments
+# 8. Use more descriptive variable names
+# 9. Add unit tests to verify correctness
+#
+# The code shows understanding of the problem but has fundamental logical errors that 
+# make it produce incorrect results. It's in the "works but poorly written" category.
